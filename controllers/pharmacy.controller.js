@@ -1,0 +1,65 @@
+const Pharmacy = require("../models/pharmacy.model");
+
+// addPharmacy
+exports.addPharmacy = async (req, res) => {
+  try {
+    const { name, address, phone, email, password, workingHours, isOpen24h, location } = req.body;
+
+    // Basic data verification
+    if (!name || !address || !phone || !password || !location?.coordinates) {
+      return res.status(400).json({ success: false, message: "All required fields must be filled" });
+    }
+
+    const pharmacy = new Pharmacy({
+      name,
+      address,
+      phone,
+      email,
+      password,
+      workingHours,
+      isOpen24h,
+      location,
+    });
+
+    await pharmacy.save();
+
+    res.status(201).json({ success: true, data: pharmacy });
+  } catch (error) {
+    console.error("Error adding pharmacy:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// getAllPharmacies
+exports.getAllPharmacies = async (req, res) => {
+  try {
+    const pharmacies = await Pharmacy.find({ isDeleted: false });
+    res.json({ success: true, data: pharmacies });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Find a nearby pharmacy based on coordinates
+exports.getNearbyPharmacies = async (req, res) => {
+  try {
+    const { longitude, latitude, distance = 5000 } = req.query; // distance 
+
+    if (!longitude || !latitude) {
+      return res.status(400).json({ success: false, message: "Coordinates are required" });
+    }
+
+    const pharmacies = await Pharmacy.find({
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: parseFloat(distance),
+        },
+      },
+    });
+
+    res.json({ success: true, data: pharmacies });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
