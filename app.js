@@ -16,8 +16,8 @@ app.use("/api/medicine", medicineRoutes);
 
 app.use("/register", require("./routes/user.routes.js"));
 // تاكيد تسجيل دخول
-app.use("/auth", require("./routes/auth.routes.js"));
-app.use("/review", require("./routes/review.routes.js"));
+//app.use("/auth", require("./routes/auth.routes.js"));
+app.use("/review", require("./routes/review.route.js"));
 
 app.listen(PORT, (err) => {
   if (err) {
