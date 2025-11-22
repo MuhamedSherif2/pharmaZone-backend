@@ -14,6 +14,11 @@ app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/medicine", medicineRoutes);
 
+app.use("/register", require("./routes/user.routes.js"));
+// تاكيد تسجيل دخول
+app.use("/auth", require("./routes/auth.routes.js"));
+app.use("/review", require("./routes/review.routes.js"));
+
 app.listen(PORT, (err) => {
   if (err) {
     console.log(`Listening server error: ${err.message}`);
@@ -21,3 +26,24 @@ app.listen(PORT, (err) => {
     console.log(`Server listens at port: ${PORT}`);
   }
 });
+
+/**
+
+const pharmacyRoutes = require("./routes/pharmacy.routes");
+ 
+app.use(express.json());
+ 
+app.use("/api/pharmacies", pharmacyRoutes);
+app.use("/register", require("./routes/user.routes.js"));
+// تاكيد تسجيل دخول
+app.use("/auth", require("./routes/auth.routes.js"));
+app.use("/review", require("./routes/review.routes.js"));
+ 
+app.listen(PORT, (err) => {
+  if (err) {
+    console.log(`Listening server error: ${err.message}`);
+  } else {
+    console.log(`Server listens at port: ${PORT}`);
+  }
+});
+  */
