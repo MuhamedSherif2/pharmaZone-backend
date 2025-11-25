@@ -7,12 +7,14 @@ const app = express();
 const pharmacyRoutes = require("./routes/pharmacy.routes");
 const inventoryRoutes = require("./routes/inventory.route.js");
 const medicineRoutes = require("./routes/medicine.route.js");
+const notificationRoutes = require("./routes/notification.route.js");
 
 app.use(express.json());
 
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/medicine", medicineRoutes);
+app.use("/api/notification", notificationRoutes);
 
 app.use("/register", require("./routes/user.routes.js"));
 // تاكيد تسجيل دخول
