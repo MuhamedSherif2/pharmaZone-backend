@@ -10,6 +10,6 @@ router.post("/create",authenticate, orderController.createOrder);
 router.get("/user/:userId",authenticate, orderController.getOrdersByUser);
 
 // Update order status
-router.put("/update/:orderId", authenticate,authorize('admin'),orderController.updateOrderStatus);
+router.put("/update/:orderId", authenticate,authorize('pharmacy'),orderController.updateOrderStatus);
 
 module.exports = router;

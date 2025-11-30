@@ -4,7 +4,7 @@ const {addPharmacy,getAllPharmacies,getNearbyPharmacies} = require("../controlle
 const { authenticate, authorize } = require("../middleWars/auth.middlewar");
 
 // addPharmacy adminOnly 
-router.post("/",authenticate,authorize('admin'), addPharmacy);
+router.post("/",authenticate,authorize('pharmacy'), addPharmacy);
 // getAllPharmacies
 router.get("/", getAllPharmacies);
 // getNearbyPharmacies

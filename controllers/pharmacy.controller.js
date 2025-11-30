@@ -3,20 +3,22 @@ const Pharmacy = require("../models/pharmacy.model");
 // addPharmacy
 exports.addPharmacy = async (req, res) => {
   try {
-    const { name, address, phone, email, password, workingHours, isOpen24h, location } = req.body;
+    const {  isOpen24h, location } = req.body;
+    // name, address, phone, email, password, workingHours,
 
     // Basic data verification
-    if (!name || !address || !phone || !password || !location?.coordinates) {
+    if ( !location) {
+      // !name || !address || !phone || !password ||
       return res.status(400).json({ success: false, message: "All required fields must be filled" });
     }
 
     const pharmacy = new Pharmacy({
-      name,
-      address,
-      phone,
-      email,
-      password,
-      workingHours,
+      // name,
+      // address,
+      // phone,
+      // email,
+      // password,
+      // workingHours,
       isOpen24h,
       location,
     });

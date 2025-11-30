@@ -12,13 +12,13 @@ const signToken = (user) => {
 };
 
 // REGISTER 
-exports.createUser = (role) => {
+exports.createUser =(role) => {
   return async (req, res) => {
     try {
       const { email, password, phone, address, name } = req.body;
 
       // Validate role
-      if (!["admin", "user"].includes(role)) {
+      if (![ "user","admin","pharmacy"].includes(role)) {
         return res.status(400).json({ error: "invalid role" });
       }
 
