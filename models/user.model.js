@@ -1,30 +1,67 @@
-const bcrypt = require('bcrypt');
-const mongoose = require('mongoose');
- 
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  name: String,
+  email: {
+    type: String,
+    unique: true,
+    required: true
+  },
+  phone: String,
+  address: String,
+
   role: {
     type: String,
-    required: true,
-    enum: ['admin','user'],
+    enum: ["admin", "user"],
+    default: "user"
   },
-  phone: { type: String },
-  address: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  isDeleted: { type: Boolean, default: false }
-});
- 
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  password: {
+    type: String,
+    required: true,
+    minlength: 6,
+    select: false
+  },
+
+  passwordChangedAt: Date,
+
+  // OTP system
+  resetOTP: String,
+  resetOTPExpires: Date
+});
+
+// Hash password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
- 
-userSchema.methods.correctPassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+
+// Compare password
+userSchema.methods.correctPassword = async function (inputPass, hashedPass) {
+  return await bcrypt.compare(inputPass, hashedPass);
 };
- 
+
+// Check if password changed after JWT issued
+userSchema.methods.changedPasswordAfter = function (jwtTime) {
+  if (this.passwordChangedAt) {
+    const changedTime = parseInt(this.passwordChangedAt.getTime() / 1000);
+    return jwtTime < changedTime;
+  }
+  return false;
+};
+
+// Create OTP
+userSchema.methods.createPasswordResetOTP = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  this.resetOTP = crypto.createHash("sha256").update(otp).digest("hex");
+  this.resetOTPExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return otp;
+};
+
 module.exports = mongoose.model("User", userSchema);

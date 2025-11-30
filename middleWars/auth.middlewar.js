@@ -1,42 +1,33 @@
 const jwt = require("jsonwebtoken");
-const User=require("../models/user.model")
- 
-exports.authenticate= async (req,res,next)=>{
-    const authHeader= req.headers.authorization;
-    if(!authHeader?.startsWith("Bearer ")){
-        return res.status(401).json({message:"no token provider"})
-    
-    }
-    const token=authHeader.split(" ")[1]
-    try{
-    const decode= jwt.verify(token,process.env.JWT_SECRET)
-    const user = await User.findById(decode.id)
-    console.log(user)
-    
-    if(!user){
-        return res.status(404).json({message:"user not found"})
-    
-    }
-    req.user=user;
-    return next()
-    }
-    catch(err){
-    return   res.status(403).json({message:"token is not valid or expired"})
-    
-    
-    }
- 
- 
-next()
-}
-exports.authorize=(...allowedRoles)=>{
-    return(req,res,next)=>{
-        const userRole=req.user.role
- 
- 
-    if(allowedRoles.includes(userRole)){
- return next()
-    }
-     return res.status(403).json({error:"access denaid"})
-}
-}
+const User = require("../models/user.model");
+
+exports.authenticate = async (req, res, next) => {
+  try {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith("Bearer "))
+      return res.status(401).json({ message: "No token provided" });
+
+    const token = auth.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ message: "User no longer exists" });
+
+    if (user.changedPasswordAfter(decoded.iat))
+      return res.status(401).json({ message: "Password changed recently" });
+
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role))
+      return res.status(403).json({ message: "Access denied" });
+
+    next();
+  };
+};
