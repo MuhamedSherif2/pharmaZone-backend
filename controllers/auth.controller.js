@@ -1,77 +1,147 @@
 const User = require("../models/user.model");
+const Pharmacy = require("../models/pharmacy.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { sendOTPEmail } = require("../services/mail.service");
+const {
+  createAccountSchema,
+  createPharmacySchema,
+  loginSchema,
+  forgotPasswordSchema,
+  verifySchema,
+  resetPasswordSchema,
+} = require("../lib/validations/auth");
 
 // Create JWT token
 const signToken = (user) => {
   return jwt.sign(
     { id: user._id, name: user.name, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN  }
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 };
 
-// REGISTER 
-exports.createUser =(role) => {
-  return async (req, res) => {
-    try {
-      const { email, password, phone, address, name } = req.body;
+// create account
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+    const formateUserData = {
+      name,
+      email,
+      phone,
+      role,
+      password,
+    };
+    // Validate user data
+    const validatedData = createAccountSchema.safeParse(formateUserData);
 
-      // Validate role
-      if (![ "user","admin","pharmacy"].includes(role)) {
-        return res.status(400).json({ error: "invalid role" });
-      }
-
-      // Email exists?
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
-        return res.status(400).json({ error: "Email already exists" });
-      }
-
-      // Phone exists?
-      if (phone) {
-        const existingPhone = await User.findOne({ phone });
-        if (existingPhone) {
-          return res.status(400).json({ error: "Phone number already in use" });
-        }
-      }
-
-      // Create user
-      const user = await User.create({
-        email,
-        password,
-        role,
-        phone,
-        address,
-        name
+    if (!validatedData.success) {
+      return res.status(400).json({
+        errors: validatedData.error.flatten(),
       });
-
-      // Generate token
-      const token = signToken(user);
-
-      // Response
-      return res.status(201).json({
-        message: "User created successfully",
-        token
-      });
-
-    } catch (err) {
-      console.error("Signup error:", err);
-      return res.status(500).json({ error: "User creation failed" });
     }
-  };
+
+    const userData = validatedData.data;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: userData.email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "البريد الإلكتروني مستخدم بالفعل" });
+    }
+
+    // Create user
+    const user = await User.create({
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      password: userData.password,
+      role: userData.role,
+    });
+
+    // If role is pharmacy, create pharmacy document with userId
+    if (userData.role === "pharmacy") {
+      const { work24h, location, startTime, endTime } = req.body;
+      const formatPharacyData = {
+        isOpen24h: work24h,
+        ...(work24h ? {} : { startTime, endTime }),
+        location: {
+          lat: location.lat,
+          lng: location.lng,
+          address: location.address,
+        },
+      };
+
+      const pharmacyData = createPharmacySchema.safeParse(formatPharacyData);
+
+      if (!pharmacyData.success) {
+        // first delete user created..
+        await User.findByIdAndDelete({ _id: user._id });
+        return res.status(400).json({
+          errors: pharmacyData.error.flatten(),
+        });
+      }
+
+      const pharmacyD = pharmacyData.data;
+
+      await Pharmacy.create({
+        userId: user._id,
+        isOpen24h: pharmacyD.work24h,
+
+        ...(pharmacyD.isOpen24h
+          ? {}
+          : { startTime: pharmacyD.startTime, endTime: pharmacyD.endTime }),
+
+        location: {
+          type: "Point",
+          coordinates: [pharmacyD.location.lng, pharmacyD.location.lat],
+          ...(pharmacyD.location.address
+            ? { address: pharmacyD.location.address }
+            : {}),
+        },
+      });
+    }
+
+    const token = signToken(user);
+
+    res.status(201).json({
+      message: "Account created successfully",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error(error, "error in create user functionality");
+    res.status(500).json({ error: error });
+  }
 };
 
 // LOGIN
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const result = loginSchema.safeParse(req.body);
+    console.log(req.body);
 
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(404).json({ message: "Invalid email or password" });
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+
+    const loginData = result.data;
+
+    const user = await User.findOne({ email: loginData.email }).select(
+      "+password"
+    );
+    if (!user)
+      return res.status(404).json({ message: "Invalid email or password" });
 
     const isCorrect = await user.correctPassword(password, user.password);
-    if (!isCorrect) return res.status(400).json({ message: "Invalid email or password" });
+    if (!isCorrect)
+      return res.status(400).json({ message: "Invalid email or password" });
 
     const token = signToken(user);
 
@@ -82,8 +152,8 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -93,16 +163,29 @@ exports.login = async (req, res) => {
 // FORGOT PASSWORD → send OTP
 exports.forgotPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const result = forgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+    const data = result.data;
+
+    const user = await User.findOne({ email: data.email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = user.createPasswordResetOTP();
     await user.save({ validateBeforeSave: false });
 
-    // => "send email"
-    console.log("OTP:", otp);
+    // Send OTP to email
+    try {
+      await sendOTPEmail(user.email, otp);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError.message);
+      return res.status(500).json({
+        message: "OTP created but failed to send email. Please try again.",
+      });
+    }
 
-    res.json({ message: "OTP sent to email", otp }); // return otp for testing
+    res.json({ message: "OTP sent to your email successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -111,14 +194,23 @@ exports.forgotPassword = async (req, res) => {
 // VERIFY OTP
 exports.verifyOTP = async (req, res) => {
   try {
-    const hashedOTP = crypto.createHash("sha256").update(req.body.otp).digest("hex");
+    const result = verifySchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+
+    const otp = result.data.otp;
+
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
       resetOTP: hashedOTP,
-      resetOTPExpires: { $gt: Date.now() }
+      resetOTPExpires: { $gt: Date.now() },
     });
 
-    if (!user) return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired OTP" });
 
     res.json({ message: "OTP verified" });
   } catch (err) {
@@ -129,16 +221,25 @@ exports.verifyOTP = async (req, res) => {
 // RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
-    const hashedOTP = crypto.createHash("sha256").update(req.body.otp).digest("hex");
+    // validate input
+    const result = resetPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+
+    const { otp, password } = result.data;
+
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
       resetOTP: hashedOTP,
-      resetOTPExpires: { $gt: Date.now() }
-    });
+      resetOTPExpires: { $gt: Date.now() },
+    }).select("+password");
 
-    if (!user) return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired OTP" });
 
-    user.password = req.body.password;
+    user.password = password;
     user.resetOTP = undefined;
     user.resetOTPExpires = undefined;
     user.passwordChangedAt = Date.now();
