@@ -182,6 +182,7 @@ exports.forgotPassword = async (req, res) => {
       console.error("Failed to send email:", emailError.message);
       return res.status(500).json({
         message: "OTP created but failed to send email. Please try again.",
+        emailError,
       });
     }
 
