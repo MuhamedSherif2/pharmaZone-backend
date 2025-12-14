@@ -2,10 +2,14 @@ const User = require("../models/user.model");
 const Pharmacy = require("../models/pharmacy.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { sendOTPEmail } = require("../services/mail.service");
 const {
   createAccountSchema,
   createPharmacySchema,
   loginSchema,
+  forgotPasswordSchema,
+  verifySchema,
+  resetPasswordSchema,
 } = require("../lib/validations/auth");
 
 // Create JWT token
@@ -159,16 +163,29 @@ exports.login = async (req, res) => {
 // FORGOT PASSWORD → send OTP
 exports.forgotPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const result = forgotPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+    const data = result.data;
+
+    const user = await User.findOne({ email: data.email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = user.createPasswordResetOTP();
     await user.save({ validateBeforeSave: false });
 
-    // => "send email"
-    console.log("OTP:", otp);
+    // Send OTP to email
+    try {
+      await sendOTPEmail(user.email, otp);
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError.message);
+      return res.status(500).json({
+        message: "OTP created but failed to send email. Please try again.",
+      });
+    }
 
-    res.json({ message: "OTP sent to email", otp }); // return otp for testing
+    res.json({ message: "OTP sent to your email successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -177,10 +194,15 @@ exports.forgotPassword = async (req, res) => {
 // VERIFY OTP
 exports.verifyOTP = async (req, res) => {
   try {
-    const hashedOTP = crypto
-      .createHash("sha256")
-      .update(req.body.otp)
-      .digest("hex");
+    const result = verifySchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+
+    const otp = result.data.otp;
+
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
       resetOTP: hashedOTP,
@@ -199,20 +221,25 @@ exports.verifyOTP = async (req, res) => {
 // RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
-    const hashedOTP = crypto
-      .createHash("sha256")
-      .update(req.body.otp)
-      .digest("hex");
+    // validate input
+    const result = resetPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.flatten() });
+    }
+
+    const { otp, password } = result.data;
+
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
       resetOTP: hashedOTP,
       resetOTPExpires: { $gt: Date.now() },
-    });
+    }).select("+password");
 
     if (!user)
       return res.status(400).json({ message: "Invalid or expired OTP" });
 
-    user.password = req.body.password;
+    user.password = password;
     user.resetOTP = undefined;
     user.resetOTPExpires = undefined;
     user.passwordChangedAt = Date.now();

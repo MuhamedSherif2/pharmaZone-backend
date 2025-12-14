@@ -7,29 +7,29 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
   phone: String,
   address: String,
 
   role: {
     type: String,
-    enum: ["admin", "user","pharmacy"],
-    default: "user"
+    enum: ["admin", "user", "pharmacy"],
+    default: "user",
   },
 
   password: {
     type: String,
     required: true,
     minlength: 6,
-    select: false
+    select: false,
   },
 
   passwordChangedAt: Date,
 
   // OTP system
   resetOTP: String,
-  resetOTPExpires: Date
+  resetOTPExpires: Date,
 });
 
 // Hash password before saving
@@ -56,7 +56,7 @@ userSchema.methods.changedPasswordAfter = function (jwtTime) {
 
 // Create OTP
 userSchema.methods.createPasswordResetOTP = function () {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 1000000).toString();
 
   this.resetOTP = crypto.createHash("sha256").update(otp).digest("hex");
   this.resetOTPExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
