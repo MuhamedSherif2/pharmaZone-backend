@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
 const pharmacySchema = new mongoose.Schema({
-  // name: { type: String, required: true, trim: true },
+   name: { type: String, required: true, trim: true },
   // address: { type: String, required: true },
   // phone: { type: String, required: true },
   // email: { type: String, lowercase: true },
   // password: { type: String, required: true },
   // workingHours: { type: String },
   isOpen24h: { type: Boolean, default: false },
-  starttime:{type:Date,default:Date.now},
-  endtime:{type:Date,default:Date.now},
+  starttime:{type:String},
+  endtime:{type:String},
   location: {
     type: {
       type: String,

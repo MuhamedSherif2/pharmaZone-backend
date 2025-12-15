@@ -12,6 +12,7 @@ const authRoutes= require("./routes/auth.route.js");
 const reviewRoutes= require("./routes/review.route.js");
 const orderRoutes= require("./routes/order.route.js");
 const notificationRoutes = require("./routes/notification.route.js");
+const categoryRoutes=require("./routes/category.route.js")
 
 app.use(express.json());
 
@@ -22,8 +23,7 @@ app.use("/user",userRoutes);
 app.use("/auth",authRoutes);
 app.use("/review", reviewRoutes);
 app.use("/api/order",orderRoutes);
-
-
+app.use("/api/category",categoryRoutes);
 app.use("/api/notification", notificationRoutes);
 
 

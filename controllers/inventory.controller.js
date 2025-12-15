@@ -54,7 +54,6 @@ exports.getPharmaciesWithMedicine = async (req, res) => {
 };
 
 
-
 // Update Inventory (quantity, price, etc.)
 exports.updateInventory = async (req, res) => {
   try {
@@ -93,3 +92,114 @@ exports.updateInventory = async (req, res) => {
     });
   }
 };
+
+exports.getInventoryById = async (req, res) => {
+  try {
+    const { inventoryId } = req.params;
+
+    const item = await Inventory.findOne({ _id: inventoryId, isDeleted: false })
+      .populate("pharmacy")
+      .populate("medicine");
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Inventory item not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: item
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+//Get All Inventory Items Across All Pharmacies
+exports.getAllInventory = async (req, res) => {
+  try {
+    const items = await Inventory.find({ isDeleted: false })
+      .populate("pharmacy")
+      .populate("medicine")
+      .sort({ updatedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: items
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.deleteInventoryItem = async (req, res) => {
+  try {
+    const { inventoryId } = req.params;
+
+    const item = await Inventory.findOneAndUpdate(
+      { _id: inventoryId, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Inventory item not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Inventory item deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.restoreInventoryItem = async (req, res) => {
+  try {
+    const { inventoryId } = req.params;
+
+    const item = await Inventory.findOneAndUpdate(
+      { _id: inventoryId, isDeleted: true },
+      { isDeleted: false },
+      { new: true }
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Inventory item not found or already restored"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Inventory item restored successfully",
+      data: item
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+ 
+
