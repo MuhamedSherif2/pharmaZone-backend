@@ -1,30 +1,48 @@
 const mongoose = require("mongoose");
 
 const pharmacySchema = new mongoose.Schema({
-   name: { type: String, required: true, trim: true },
-  // address: { type: String, required: true },
-  // phone: { type: String, required: true },
-  // email: { type: String, lowercase: true },
-  // password: { type: String, required: true },
-  // workingHours: { type: String },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   isOpen24h: { type: Boolean, default: false },
-  starttime:{type:String},
-  endtime:{type:String},
+  startTime: { type: String },
+  endTime: { type: String },
+  // location: {
+  //   address: { type: String },
+  //   lat: { type: Number, required: true },
+  //   lng: { type: Number, required: true },
+  // },
+
   location: {
     type: {
       type: String,
       enum: ["Point"],
+      required: true,
       default: "Point",
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       required: true,
     },
+    address: { type: String },
   },
+
   createdAt: { type: Date, default: Date.now },
   isDeleted: { type: Boolean, default: false },
 });
 
 pharmacySchema.index({ location: "2dsphere" });
+
+// cascade delete pharmacy when user is deleted
+pharmacySchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    await mongoose.model("Pharmacy").deleteMany({ userId: this._id });
+    next();
+  }
+);
 
 module.exports = mongoose.model("Pharmacy", pharmacySchema);
