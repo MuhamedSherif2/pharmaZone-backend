@@ -16,4 +16,13 @@ router.get("/medicine/:medicineId", inventoryController.getPharmaciesWithMedicin
 // Update an inventory item
 router.put("/update/:inventoryId",authenticate,authorize('pharmacy'), inventoryController.updateInventory);
 
+router.get("/:inventoryId",authenticate,authorize("pharmacy"),inventoryController.getInventoryById);
+
+router.delete("/:inventoryId",authenticate,authorize("pharmacy"),inventoryController.deleteInventoryItem);
+
+router.patch("/:inventoryId/restore",authenticate,authorize("pharmacy"),inventoryController.restoreInventoryItem);
+
+
+router.get("/",authenticate,authorize("admin"),inventoryController.getAllInventory);
+
 module.exports = router;

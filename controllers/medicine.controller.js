@@ -4,93 +4,192 @@ const Pharmacy = require("../models/pharmacy.model");
 // addMedicine
 exports.addMedicine = async (req, res) => {
   try {
-    const { name, description, type, activeIngredient, image } = req.body;
+    const { name, image, description, details, category } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ success: false, message: "Medicine name is required" });
+    if (!name || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and category are required"
+      });
     }
 
-    const medicine = new Medicine({
+    const medicine = await Medicine.create({
       name,
-      description,
-      type,
-      activeIngredient,
       image,
+      description,
+      details,
+      category
     });
 
-    await medicine.save();
+    res.status(201).json({
+      success: true,
+      data: medicine
+    });
 
-    res.status(201).json({ success: true, data: medicine });
   } catch (error) {
     console.error("Error adding medicine:", error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
+
 
 // getAllMedicines
 exports.getAllMedicines = async (req, res) => {
   try {
-    const medicines = await Medicine.find({ isDeleted: false });
-    res.json({ success: true, data: medicines });
+    const { pharmacyId } = req.query; // optional query param
+
+    const medicines = await Medicine.find({ isDeleted: false })
+      .populate("category")
+      .sort({ createdAt: -1 });
+
+    // If pharmacyId is provided, include price
+    let data = medicines;
+    if (pharmacyId) {
+      data = await Promise.all(
+        medicines.map(async (medicine) => {
+          const inventory = await Inventory.findOne({
+            medicine: medicine._id,
+            pharmacy: pharmacyId,
+            isDeleted: false
+          });
+
+          return {
+            ...medicine.toObject(),
+            price: inventory ? inventory.price : null,
+            quantity: inventory ? inventory.quantity : 0
+          };
+        })
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      data
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
+
+exports.getMedicineById = async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+    const { pharmacyId } = req.query; // optional query param
+
+    const medicine = await Medicine.findOne({
+      _id: medicineId,
+      isDeleted: false
+    }).populate("category");
+
+    if (!medicine) {
+      return res.status(404).json({
+        success: false,
+        message: "Medicine not found"
+      });
+    }
+
+    let result = medicine.toObject();
+
+    // Add price and quantity if pharmacyId is provided
+    if (pharmacyId) {
+      const inventory = await Inventory.findOne({
+        medicine: medicineId,
+        pharmacy: pharmacyId,
+        isDeleted: false
+      });
+
+      result.price = inventory ? inventory.price : null;
+      result.quantity = inventory ? inventory.quantity : 0;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
 // Find nearest pharmacy with a specific medicine
 exports.findNearestPharmacyWithMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
     const { userLat, userLong } = req.body;
 
-    // Fetch inventory with populated pharmacy
     const inventories = await Inventory.find({
-      medicine: medicineId,
+      medicineId,
       quantity: { $gt: 0 },
       isDeleted: false
-    }).populate("pharmacy"); 
+    }).populate("pharmacyId");
 
     if (!inventories.length) {
-      return res.status(404).json({ message: "Medicine not available in any pharmacy" });
+      return res.status(404).json({
+        success: false,
+        message: "Medicine not available in any pharmacy"
+      });
     }
 
-    // Filter out any inventory without pharmacy or location
     const validInventories = inventories.filter(
-      inv => inv.pharmacy && inv.pharmacy.location && inv.pharmacy.location.coordinates
+      inv =>
+        inv.pharmacyId &&
+        inv.pharmacyId.location &&
+        inv.pharmacyId.location.coordinates
     );
 
     if (!validInventories.length) {
-      return res.status(404).json({ message: "No pharmacies with valid location found" });
+      return res.status(404).json({
+        success: false,
+        message: "No pharmacies with valid location found"
+      });
     }
 
-    // Compute distances
     const distances = validInventories.map(inv => {
-      const pharmacy = inv.pharmacy;
-      const [lng, lat] = pharmacy.location.coordinates;
-
+      const [lng, lat] = inv.pharmacyId.location.coordinates;
       const distance = getDistance(userLat, userLong, lat, lng);
 
-      return { pharmacy, distance };
+      return {
+        pharmacy: inv.pharmacyId,
+        price: inv.price,
+        distance
+      };
     });
 
-    // Sort by nearest
     distances.sort((a, b) => a.distance - b.distance);
 
-    res.json({
+    res.status(200).json({
+      success: true,
       nearest: distances[0],
       all: distances
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
+
 // Haversine formula
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of earth in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
+
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) *
@@ -101,41 +200,107 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 
 
-
 // Update Medicine
 exports.updateMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
-    const updateData = req.body; // name, description, price, category, image, etc.
+    const updateData = req.body;
 
-    // Check if medicine exists
-    const medicine = await Medicine.findById(medicineId);
+    const medicine = await Medicine.findOneAndUpdate(
+      { _id: medicineId, isDeleted: false },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
     if (!medicine) {
       return res.status(404).json({
         success: false,
-        message: "Medicine not found",
+        message: "Medicine not found"
       });
     }
 
-    // Update fields
-    const updatedMedicine = await Medicine.findByIdAndUpdate(
-      medicineId,
-      updateData,
-      { new: true } // return updated object
-    );
-
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Medicine updated successfully",
-      data: updatedMedicine,
+      data: medicine
     });
+
   } catch (error) {
     console.error("Error updating medicine:", error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      message: error.message
     });
   }
 };
+exports.deleteMedicine = async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+
+    const medicine = await Medicine.findOneAndUpdate(
+      { _id: medicineId, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!medicine) {
+      return res.status(404).json({
+        success: false,
+        message: "Medicine not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Medicine deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting medicine:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.restoreMedicine = async (req, res) => {
+  try {
+    const { medicineId } = req.params;
+
+    const medicine = await Medicine.findOneAndUpdate(
+      { _id: medicineId, isDeleted: true },
+      { isDeleted: false },
+      { new: true }
+    );
+
+    if (!medicine) {
+      return res.status(404).json({
+        success: false,
+        message: "Medicine not found or already restored"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Medicine restored successfully",
+      data: medicine
+    });
+
+  } catch (error) {
+    console.error("Error restoring medicine:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.getDeletedMedicines = async (req, res) => {
+  const medicines = await Medicine.find({ isDeleted: true });
+  res.json({ success: true, data: medicines });
+};
+
+
 
 
