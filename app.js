@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// import express from "express";
-// import corsMiddleware from "./middleWars/cors.middleware.js";
-// import connectDB from "./config/db.js";
-// /////
-
-
-// const app = express();
-// connectDB();
-// import cors from "cors";
-
-// app.use(express.json());
-// app.use(corsMiddleware);
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -21,13 +5,7 @@ import express from "express";
 import corsMiddleware from "./middleWars/cors.middleware.js";
 import { connectDB } from "./config/db.js";
 
-=======
-require("dotenv").config();
-require("./config/db.js").connectDB();
-const express = require("express");
-const cors = require("cors");
-const PORT = process.env.PORT;
->>>>>>> 532ec82c38ca3074f7611c5f13793a3bd9e5fe65
+import cors from"cors";
 const app = express();
 
 connectDB();
