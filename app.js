@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import dotenv from "dotenv";
 // dotenv.config();
 
@@ -20,6 +21,13 @@ import express from "express";
 import corsMiddleware from "./middleWars/cors.middleware.js";
 import { connectDB } from "./config/db.js";
 
+=======
+require("dotenv").config();
+require("./config/db.js").connectDB();
+const express = require("express");
+const cors = require("cors");
+const PORT = process.env.PORT;
+>>>>>>> 532ec82c38ca3074f7611c5f13793a3bd9e5fe65
 const app = express();
 
 connectDB();
@@ -42,6 +50,12 @@ import notificationRoutes from"./routes/notification.route.js";
 import categoryRoutes from"./routes/category.route.js";
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/inventory", inventoryRoutes);

@@ -125,7 +125,6 @@ export const createUser = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const result = loginSchema.safeParse(req.body);
-    console.log(req.body);
 
     if (!result.success) {
       return res.status(400).json({ error: result.error.flatten() });
@@ -139,7 +138,11 @@ export const login = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "Invalid email or password" });
 
-    const isCorrect = await user.correctPassword(password, user.password);
+    const isCorrect = await user.correctPassword(
+      loginData.password,
+      user.password
+    );
+
     if (!isCorrect)
       return res.status(400).json({ message: "Invalid email or password" });
 
@@ -156,6 +159,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -201,11 +205,21 @@ export const verifyOTP = async (req, res) => {
       return res.status(400).json({ error: result.error.flatten() });
     }
 
-    const otp = result.data.otp;
+    const data = result.data;
 
-    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+    // check email first
+    const userByEmail = await User.findOne({ email: data.email });
+    if (!userByEmail) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedOTP = crypto
+      .createHash("sha256")
+      .update(data.otp)
+      .digest("hex");
 
     const user = await User.findOne({
+      email: data.email,
       resetOTP: hashedOTP,
       resetOTPExpires: { $gt: Date.now() },
     });
@@ -228,17 +242,32 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ error: result.error.flatten() });
     }
 
-    const { otp, password } = result.data;
+    const { email, otp, password } = result.data;
+
+    // check email first
+    const userByEmail = await User.findOne({ email });
+    if (!userByEmail) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     const user = await User.findOne({
+      email,
       resetOTP: hashedOTP,
       resetOTPExpires: { $gt: Date.now() },
     }).select("+password");
 
     if (!user)
       return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    // Check if new password is different from current password
+    const isSamePassword = await user.correctPassword(password, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        message: "New password must be different from the current password",
+      });
+    }
 
     user.password = password;
     user.resetOTP = undefined;
