@@ -1,6 +1,6 @@
-const Category = require("../models/Category.js");
+import Category from "../models/category.model.js";
 
-exports.createCategory = async (req, res) => {
+export const createCategory = async (req, res) => {
   try {
     const { name, imageUrl } = req.body;
 
@@ -29,7 +29,7 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-exports.getAllCategories = async (req, res) => {
+export const getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isDeleted: false })
       .sort({ createdAt: -1 });
@@ -47,7 +47,7 @@ exports.getAllCategories = async (req, res) => {
   }
 };
 
-exports.getCategoryById = async (req, res) => {
+export const getCategoryById = async (req, res) => {
   try {
     const category = await Category.findOne({
       _id: req.params.id,
@@ -75,7 +75,7 @@ exports.getCategoryById = async (req, res) => {
 };
 
 
-exports.updateCategory = async (req, res) => {
+export const updateCategory = async (req, res) => {
   try {
     const { name, imageUrl } = req.body;
 
@@ -105,7 +105,7 @@ exports.updateCategory = async (req, res) => {
   }
 };
 
-exports.deleteCategory = async (req, res) => {
+export const deleteCategory = async (req, res) => {
   try {
     const category = await Category.findOneAndUpdate(
       { _id: req.params.id, isDeleted: false },
@@ -133,7 +133,7 @@ exports.deleteCategory = async (req, res) => {
   }
 };
 
-exports.restoreCategory = async (req, res) => {
+export const restoreCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
 

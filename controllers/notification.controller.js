@@ -1,7 +1,7 @@
-const Notification = require("../models/notification.model");
+import Notification from "../models/notification.model.js";
 
 // create  New notification   
-exports.createNotification = async (req, res) => {
+export const createNotification = async (req, res) => {
   try {
     const { user, pharmacy, title, message, type } = req.body;
 
@@ -28,7 +28,7 @@ exports.createNotification = async (req, res) => {
 };
 
 // getNotifications (User-Pharmacy) 
-exports.getNotifications = async (req, res) => {
+export const getNotifications = async (req, res) => {
   try {
     const { userId, pharmacyId } = req.query;
 
@@ -45,7 +45,7 @@ exports.getNotifications = async (req, res) => {
 };
 
 // markAsRead notifications
-exports.markAsRead = async (req, res) => {
+export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
 

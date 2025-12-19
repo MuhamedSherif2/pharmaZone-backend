@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const pharmacySchema = new mongoose.Schema({
   userId: {
@@ -45,4 +45,5 @@ pharmacySchema.pre(
   }
 );
 
-module.exports = mongoose.model("Pharmacy", pharmacySchema);
+
+export default mongoose.model("Pharmacy", pharmacySchema);

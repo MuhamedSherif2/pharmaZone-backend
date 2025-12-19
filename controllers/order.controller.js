@@ -1,8 +1,8 @@
-const Order = require("../models/order.model");
-const Inventory = require("../models/inventory.model");
+import Order from "../models/order.model.js";
+import Inventory from "../models/inventory.model.js";
 
 // Create new order
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const { user, pharmacy, items } = req.body;
 
@@ -32,7 +32,7 @@ exports.createOrder = async (req, res) => {
 };
 
 // Get all orders of a user
-exports.getOrdersByUser = async (req, res) => {
+export const getOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -48,7 +48,7 @@ exports.getOrdersByUser = async (req, res) => {
 };
 
 // Update order status
-exports.updateOrderStatus = async (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;

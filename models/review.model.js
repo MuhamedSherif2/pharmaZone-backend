@@ -1,5 +1,5 @@
-// models/category.model.js
-const mongoose = require("mongoose");
+
+import mongoose from "mongoose";
  
 const reviewSchema = new mongoose.Schema({
   user: {
@@ -20,4 +20,5 @@ const reviewSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-module.exports = mongoose.model("review", reviewSchema);
+
+export default mongoose.model("review", reviewSchema);

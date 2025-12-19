@@ -1,16 +1,16 @@
-const User = require("../models/user.model");
-const Pharmacy = require("../models/pharmacy.model");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const { sendOTPEmail } = require("../services/mail.service");
-const {
+import User from "../models/user.model.js";
+import Pharmacy from "../models/pharmacy.model.js";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendOTPEmail } from "../services/mail.service.js";
+import {
   createAccountSchema,
   createPharmacySchema,
   loginSchema,
   forgotPasswordSchema,
   verifySchema,
   resetPasswordSchema,
-} = require("../lib/validations/auth");
+} from "../lib/validations/auth.js";
 
 // Create JWT token
 const signToken = (user) => {
@@ -22,7 +22,7 @@ const signToken = (user) => {
 };
 
 // create account
-exports.createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
     const formateUserData = {
@@ -122,7 +122,7 @@ exports.createUser = async (req, res) => {
 };
 
 // LOGIN
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const result = loginSchema.safeParse(req.body);
     console.log(req.body);
@@ -161,7 +161,7 @@ exports.login = async (req, res) => {
 };
 
 // FORGOT PASSWORD → send OTP
-exports.forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
     const result = forgotPasswordSchema.safeParse(req.body);
     if (!result.success) {
@@ -193,7 +193,7 @@ exports.forgotPassword = async (req, res) => {
 };
 
 // VERIFY OTP
-exports.verifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res) => {
   try {
     const result = verifySchema.safeParse(req.body);
 
@@ -220,7 +220,7 @@ exports.verifyOTP = async (req, res) => {
 };
 
 // RESET PASSWORD
-exports.resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     // validate input
     const result = resetPasswordSchema.safeParse(req.body);

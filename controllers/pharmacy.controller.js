@@ -1,7 +1,7 @@
-const Pharmacy = require("../models/pharmacy.model");
+import Pharmacy from"../models/pharmacy.model.js";
 
 // addPharmacy
-exports.addPharmacy = async (req, res) => {
+export const addPharmacy = async (req, res) => {
   try {
     const {  isOpen24h, location } = req.body;
     // name, address, phone, email, password, workingHours,
@@ -33,7 +33,7 @@ exports.addPharmacy = async (req, res) => {
 };
 
 // getAllPharmacies
-exports.getAllPharmacies = async (req, res) => {
+export const getAllPharmacies = async (req, res) => {
   try {
     const pharmacies = await Pharmacy.find({ isDeleted: false });
     res.json({ success: true, data: pharmacies });
@@ -43,7 +43,7 @@ exports.getAllPharmacies = async (req, res) => {
 };
 
 // Find a nearby pharmacy based on coordinates
-exports.getNearbyPharmacies = async (req, res) => {
+export const getNearbyPharmacies = async (req, res) => {
   try {
     const { longitude, latitude, distance = 5000 } = req.query; // distance 
 
@@ -65,3 +65,4 @@ exports.getNearbyPharmacies = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+

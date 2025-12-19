@@ -1,7 +1,7 @@
-const Inventory = require("../models/inventory.model");
+import Inventory from "../models/inventory.model.js";
 
 // Add item to inventory
-exports.addInventoryItem = async (req, res) => {
+export const addInventoryItem = async (req, res) => {
   try {
     const { pharmacy, medicine, quantity, price } = req.body;
 
@@ -26,7 +26,7 @@ exports.addInventoryItem = async (req, res) => {
 };
 
 // Get all inventory for a pharmacy
-exports.getInventoryByPharmacy = async (req, res) => {
+export const getInventoryByPharmacy = async (req, res) => {
   try {
     const { pharmacyId } = req.params;
 
@@ -40,7 +40,7 @@ exports.getInventoryByPharmacy = async (req, res) => {
 };
 
 // Find pharmacies that have a specific medicine
-exports.getPharmaciesWithMedicine = async (req, res) => {
+export const getPharmaciesWithMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
 
@@ -55,7 +55,7 @@ exports.getPharmaciesWithMedicine = async (req, res) => {
 
 
 // Update Inventory (quantity, price, etc.)
-exports.updateInventory = async (req, res) => {
+export const updateInventory = async (req, res) => {
   try {
     const { inventoryId } = req.params;
     const { quantity, price, isDeleted } = req.body;
@@ -93,7 +93,7 @@ exports.updateInventory = async (req, res) => {
   }
 };
 
-exports.getInventoryById = async (req, res) => {
+export const getInventoryById = async (req, res) => {
   try {
     const { inventoryId } = req.params;
 
@@ -122,7 +122,7 @@ exports.getInventoryById = async (req, res) => {
 };
 
 //Get All Inventory Items Across All Pharmacies
-exports.getAllInventory = async (req, res) => {
+export const getAllInventory = async (req, res) => {
   try {
     const items = await Inventory.find({ isDeleted: false })
       .populate("pharmacy")
@@ -141,7 +141,7 @@ exports.getAllInventory = async (req, res) => {
   }
 };
 
-exports.deleteInventoryItem = async (req, res) => {
+export const deleteInventoryItem = async (req, res) => {
   try {
     const { inventoryId } = req.params;
 
@@ -171,7 +171,7 @@ exports.deleteInventoryItem = async (req, res) => {
   }
 };
 
-exports.restoreInventoryItem = async (req, res) => {
+export const restoreInventoryItem = async (req, res) => {
   try {
     const { inventoryId } = req.params;
 

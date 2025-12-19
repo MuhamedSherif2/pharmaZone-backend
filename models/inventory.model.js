@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const inventorySchema = new mongoose.Schema({
   pharmacy: {
@@ -20,4 +20,5 @@ const inventorySchema = new mongoose.Schema({
 // Ensure each pharmacy + medicine is unique
 inventorySchema.index({ pharmacy: 1, medicine: 1 }, { unique: true });
 
-module.exports = mongoose.model("Inventory", inventorySchema);
+// module.exports = mongoose.model("Inventory", inventorySchema);
+export default mongoose.model("Inventory", inventorySchema);

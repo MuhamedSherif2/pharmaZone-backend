@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const medicineSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -15,4 +15,4 @@ const medicineSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false },
 });
 
-module.exports = mongoose.model("Medicine", medicineSchema);
+export default mongoose.model("Medicine", medicineSchema);

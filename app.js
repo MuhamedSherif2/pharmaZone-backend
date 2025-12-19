@@ -1,18 +1,45 @@
-require("dotenv").config();
-require("./config/db.js").connectDB();
-const express = require("express");
-const PORT = process.env.PORT;
+// import dotenv from "dotenv";
+// dotenv.config();
+
+// import express from "express";
+// import corsMiddleware from "./middleWars/cors.middleware.js";
+// import connectDB from "./config/db.js";
+// /////
+
+
+// const app = express();
+// connectDB();
+// import cors from "cors";
+
+// app.use(express.json());
+// app.use(corsMiddleware);
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import corsMiddleware from "./middleWars/cors.middleware.js";
+import { connectDB } from "./config/db.js";
+
 const app = express();
 
-const pharmacyRoutes = require("./routes/pharmacy.routes.js");
-const inventoryRoutes = require("./routes/inventory.route.js");
-const medicineRoutes = require("./routes/medicine.route.js");
-const userRoutes = require("./routes/user.routes.js");
-const authRoutes = require("./routes/auth.route.js");
-const reviewRoutes = require("./routes/review.route.js");
-const orderRoutes = require("./routes/order.route.js");
-const notificationRoutes = require("./routes/notification.route.js");
-const categoryRoutes=require("./routes/category.route.js")
+connectDB();
+
+// Middlewares
+app.use(express.json());
+app.use(corsMiddleware);
+
+const PORT =process.env.PORT
+
+
+import pharmacyRoutes from "./routes/pharmacy.routes.js";
+import inventoryRoutes from "./routes/inventory.route.js";
+import medicineRoutes from"./routes/medicine.route.js";
+import userRoutes from"./routes/user.routes.js";
+import authRoutes from"./routes/auth.route.js";
+import reviewRoutes from"./routes/review.route.js";
+import orderRoutes from"./routes/order.route.js";
+import notificationRoutes from"./routes/notification.route.js";
+import categoryRoutes from"./routes/category.route.js";
 
 app.use(express.json());
 

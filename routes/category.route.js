@@ -1,15 +1,15 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
 
-const {
+import {
   createCategory,
   getAllCategories,
   getCategoryById,
   updateCategory,
   deleteCategory,
   restoreCategory
-} =require("../controllers/category.controller");
+} from "../controllers/category.controller.js";
 
 router.post("/", createCategory);
 router.get("/", getAllCategories);
@@ -19,4 +19,4 @@ router.delete("/:id", deleteCategory);
 router.patch("/restore/:id", restoreCategory);
 
 
-module.exports = router;
+export default router;

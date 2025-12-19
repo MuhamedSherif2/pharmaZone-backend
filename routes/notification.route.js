@@ -1,16 +1,21 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const notificationController = require("../controllers/notification.controller");
-const { authenticate } = require("../middleWars/auth.middlewar");
+import 
+{
+    createNotification,
+    getNotifications,
+    markAsRead
+} from "../controllers/notification.controller.js";
+import { authenticate } from "../middleWars/auth.middlewar.js";
 
 // create Notification 
-router.post("/create",authenticate, notificationController.createNotification);
+router.post("/create",authenticate, createNotification);
 
 // getNotifications (User-Pharmacy) 
-router.get("/",authenticate, notificationController.getNotifications);
+router.get("/",authenticate, getNotifications);
 
 // markAsRead notifications
 
-router.put("/read/:id",authenticate, notificationController.markAsRead);
+router.put("/read/:id",authenticate, markAsRead);
 
-module.exports = router;
+export default router;

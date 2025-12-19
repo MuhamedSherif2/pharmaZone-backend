@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const {addPharmacy,getAllPharmacies,getNearbyPharmacies} = require("../controllers/pharmacy.controller");
-const { authenticate, authorize } = require("../middleWars/auth.middlewar");
+import {addPharmacy,getAllPharmacies,getNearbyPharmacies} from "../controllers/pharmacy.controller.js";
+import { authenticate, authorize } from "../middleWars/auth.middlewar.js";
 
 // addPharmacy adminOnly 
 router.post("/",authenticate,authorize('pharmacy'), addPharmacy);
@@ -10,4 +10,4 @@ router.get("/", getAllPharmacies);
 // getNearbyPharmacies
 router.get("/nearby", getNearbyPharmacies);
 
-module.exports = router;
+export default router;

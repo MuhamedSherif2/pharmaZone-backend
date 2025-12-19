@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const {createreview,getreviews} = require("../controllers/review.controller");
-const { authenticate } = require("../middleWars/auth.middlewar");
+import {createreview,getreviews} from "../controllers/review.controller.js";
+import { authenticate } from "../middleWars/auth.middlewar.js";
  
 // POST → إنشاء ريفيو
 router.post("/",authenticate ,createreview);
@@ -10,7 +10,7 @@ router.post("/",authenticate ,createreview);
 router.get("/", getreviews);
  
  
-module.exports = router;
+export default router;
 // {
 //   "user": "670e5c12a1b2c3d4e5f67890",
 //   "comment": "منتج رائع وخدمة ممتازة!",

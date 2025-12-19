@@ -1,11 +1,15 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const user = require("../controllers/user.controller");
-const { authenticate } = require("../middleWars/auth.middlewar");
+import {
+    getProfile,
+    updatePassword,
+    updateProfile
+} from "../controllers/user.controller.js";
+import { authenticate } from "../middleWars/auth.middlewar.js";
 
 // All require login
-router.get("/", authenticate, user.getProfile);
-router.put("/update", authenticate, user.updateProfile);
-router.put("/update-password", authenticate, user.updatePassword);
+router.get("/", authenticate, getProfile);
+router.put("/update", authenticate, updateProfile);
+router.put("/update-password", authenticate, updatePassword);
 
-module.exports = router;
+export default router;

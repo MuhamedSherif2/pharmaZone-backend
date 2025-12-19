@@ -1,8 +1,8 @@
 // controllers/review.controller.js
-const Review = require("../models/review.model");
+import Review from "../models/review.model.js";
  
 // إنشاء ريفيو جديدة
-exports.createreview = async (req, res) => {
+export const createreview = async (req, res) => {
   try {
     const { comment, rating } = req.body;
  
@@ -24,7 +24,7 @@ exports.createreview = async (req, res) => {
 };
  
 // جلب كل الريفيوهات (مع اسم المستخدم)
-exports.getreviews = async (req, res) => {
+export const getreviews = async (req, res) => {
   try {
     const reviews = await Review.find().populate("user", "name");
     res.json(reviews);

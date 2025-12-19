@@ -1,13 +1,13 @@
-const User = require("../models/user.model");
-const bcrypt = require("bcryptjs");
+import User from "../models/user.model.js";
+import bcrypt from "bcryptjs";
 
 // GET PROFILE
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   res.json({ user: req.user });
 };
 
 // UPDATE PROFILE
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const fields = ["name", "email", "phone", "address"];
     const updates = {};
@@ -28,7 +28,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // UPDATE PASSWORD (must be logged in)
-exports.updatePassword = async (req, res) => {
+export const updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
 

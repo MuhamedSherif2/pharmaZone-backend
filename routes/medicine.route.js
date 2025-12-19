@@ -1,31 +1,40 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const medicineController = require("../controllers/medicine.controller");
-const { authenticate, authorize } = require("../middleWars/auth.middlewar");
+import {
+    addMedicine,
+    getAllMedicines,
+    updateMedicine,
+    findNearestPharmacyWithMedicine,
+    getDeletedMedicines,
+    getMedicineById,
+    deleteMedicine,
+    restoreMedicine
+}from "../controllers/medicine.controller.js";
+import { authenticate, authorize } from "../middleWars/auth.middlewar.js";
 
 // Add new medicine
-router.post("/add",authenticate,authorize('admin'), medicineController.addMedicine);
+router.post("/add",authenticate,authorize('admin'), addMedicine);
 
 // Get all medicines
 // /all?pharmacyId=123
-router.get("/all",authenticate,authorize('pharmacy'), medicineController.getAllMedicines);
+router.get("/all",authenticate,authorize('pharmacy'), getAllMedicines);
 
 // Update medicine
-router.put("/update/:medicineId",authenticate,authorize('admin'), medicineController.updateMedicine);
+router.put("/update/:medicineId",authenticate,authorize('admin'), updateMedicine);
 
 // Find nearest pharmacy that has a specific medicine
-router.post("/nearest/:medicineId", medicineController.findNearestPharmacyWithMedicine);
+router.post("/nearest/:medicineId", findNearestPharmacyWithMedicine);
 
-router.get("/deleted",authenticate,authorize("admin"),medicineController.getDeletedMedicines);
+router.get("/deleted",authenticate,authorize("admin"),getDeletedMedicines);
 
 // /:medicineId?pharmacyId=123
-router.get("/:medicineId", medicineController.getMedicineById);
+router.get("/:medicineId", getMedicineById);
 
-router.delete("/:medicineId",authenticate,authorize("admin"),medicineController.deleteMedicine);
+router.delete("/:medicineId",authenticate,authorize("admin"),deleteMedicine);
 
-router.patch("/:medicineId/restore",authenticate,authorize("admin"),medicineController.restoreMedicine);
+router.patch("/:medicineId/restore",authenticate,authorize("admin"),restoreMedicine);
 
 
 
-module.exports = router;
+export default router;

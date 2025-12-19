@@ -1,15 +1,20 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const orderController = require("../controllers/order.controller");
-const { authenticate, authorize } = require("../middleWars/auth.middlewar");
+import 
+{
+    createOrder,
+    getOrdersByUser,
+    updateOrderStatus
+} from "../controllers/order.controller.js";
+import { authenticate, authorize } from "../middleWars/auth.middlewar.js";
 
 // Create a new order
-router.post("/create",authenticate, orderController.createOrder);
+router.post("/create",authenticate, createOrder);
 
 // Get all orders of a user
-router.get("/user/:userId",authenticate, orderController.getOrdersByUser);
+router.get("/user/:userId",authenticate, getOrdersByUser);
 
 // Update order status
-router.put("/update/:orderId", authenticate,authorize('pharmacy'),orderController.updateOrderStatus);
+router.put("/update/:orderId", authenticate,authorize('pharmacy') ,updateOrderStatus);
 
-module.exports = router;
+export default router;

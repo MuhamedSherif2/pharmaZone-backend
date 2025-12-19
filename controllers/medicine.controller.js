@@ -1,8 +1,8 @@
-const Medicine = require("../models/medicine.model");
-const Inventory = require("../models/inventory.model");
-const Pharmacy = require("../models/pharmacy.model");
+import Medicine from "../models/medicine.model.js";
+import Inventory from "../models/inventory.model.js";
+import Pharmacy from "../models/pharmacy.model.js";
 // addMedicine
-exports.addMedicine = async (req, res) => {
+export const addMedicine = async (req, res) => {
   try {
     const { name, image, description, details, category } = req.body;
 
@@ -37,7 +37,7 @@ exports.addMedicine = async (req, res) => {
 
 
 // getAllMedicines
-exports.getAllMedicines = async (req, res) => {
+export const getAllMedicines = async (req, res) => {
   try {
     const { pharmacyId } = req.query; // optional query param
 
@@ -78,7 +78,7 @@ exports.getAllMedicines = async (req, res) => {
   }
 };
 
-exports.getMedicineById = async (req, res) => {
+export const getMedicineById = async (req, res) => {
   try {
     const { medicineId } = req.params;
     const { pharmacyId } = req.query; // optional query param
@@ -124,7 +124,7 @@ exports.getMedicineById = async (req, res) => {
 
 
 // Find nearest pharmacy with a specific medicine
-exports.findNearestPharmacyWithMedicine = async (req, res) => {
+export const findNearestPharmacyWithMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
     const { userLat, userLong } = req.body;
@@ -201,7 +201,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
 
 
 // Update Medicine
-exports.updateMedicine = async (req, res) => {
+export const updateMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
     const updateData = req.body;
@@ -233,7 +233,7 @@ exports.updateMedicine = async (req, res) => {
     });
   }
 };
-exports.deleteMedicine = async (req, res) => {
+export const deleteMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
 
@@ -264,7 +264,7 @@ exports.deleteMedicine = async (req, res) => {
   }
 };
 
-exports.restoreMedicine = async (req, res) => {
+export const restoreMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
 
@@ -296,7 +296,7 @@ exports.restoreMedicine = async (req, res) => {
   }
 };
 
-exports.getDeletedMedicines = async (req, res) => {
+export const getDeletedMedicines = async (req, res) => {
   const medicines = await Medicine.find({ isDeleted: true });
   res.json({ success: true, data: medicines });
 };
