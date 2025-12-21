@@ -4,7 +4,7 @@ import crypto from "crypto";
 
 const userSchema = new mongoose.Schema({
   name: String,
-  email: {
+  email: { 
     type: String,
     unique: true,
     required: true,
@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["admin", "user", "pharmacy"],
     default: "user",
-  },
+  }, 
 
   password: {
     type: String,

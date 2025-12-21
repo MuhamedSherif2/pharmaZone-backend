@@ -2,15 +2,15 @@ import Category from "../models/category.model.js";
 
 export const createCategory = async (req, res) => {
   try {
-    const { name, imageUrl } = req.body;
+    const { name } = req.body;
 
-    if (!name || !imageUrl) {
+    if (!name ) {
       return res.status(400).json({
         success: false,
-        message: "Name and imageUrl are required"
+        message: "Name  is required"
       });
     }
-
+    const imageUrl = req.file ? req.file.filename : null;
     const category = await Category.create({
       name,
       imageUrl
@@ -75,13 +75,24 @@ export const getCategoryById = async (req, res) => {
 };
 
 
-export const updateCategory = async (req, res) => {
+export const updateCategory = async (req, res) => { 
   try {
-    const { name, imageUrl } = req.body;
+    const updateData = {};
+
+    // Update name if provided
+    if (req.body.name) {
+      updateData.name = req.body.name;
+    }
+
+    // Update image if file uploaded
+    if (req.file) {
+      updateData.imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+      // updateData.image = req.file.filename;
+    }
 
     const category = await Category.findOneAndUpdate(
       { _id: req.params.id, isDeleted: false },
-      { name, imageUrl },
+      updateData,
       { new: true, runValidators: true }
     );
 

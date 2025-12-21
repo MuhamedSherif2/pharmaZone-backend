@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const medicineSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  image: { type: String }, // URL of the medicine image
+  image: { type: String }, 
   description: { type: String },
   details: { type: String },
   category: {

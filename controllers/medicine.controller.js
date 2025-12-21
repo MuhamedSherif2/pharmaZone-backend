@@ -4,18 +4,21 @@ import Pharmacy from "../models/pharmacy.model.js";
 // addMedicine
 export const addMedicine = async (req, res) => {
   try {
-    const { name, image, description, details, category } = req.body;
+    const { name, description, details, category } = req.body;
 
-    if (!name || !category) {
+    if (!name || !category || !req.file) {
       return res.status(400).json({
         success: false,
-        message: "Name and category are required"
+        message: "Name, category and image are required"
       });
     }
 
+    // Create image URL
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
     const medicine = await Medicine.create({
       name,
-      image,
+      image: imageUrl, // ✅ save URL
       description,
       details,
       category
@@ -204,7 +207,13 @@ function getDistance(lat1, lon1, lat2, lon2) {
 export const updateMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;
-    const updateData = req.body;
+
+    const updateData = { ...req.body };
+
+    // handle image update
+    if (req.file) {
+      updateData.image = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
 
     const medicine = await Medicine.findOneAndUpdate(
       { _id: medicineId, isDeleted: false },
@@ -233,6 +242,7 @@ export const updateMedicine = async (req, res) => {
     });
   }
 };
+
 export const deleteMedicine = async (req, res) => {
   try {
     const { medicineId } = req.params;

@@ -6,15 +6,10 @@ const pharmacySchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  name:{type:String},
   isOpen24h: { type: Boolean, default: false },
   startTime: { type: String },
   endTime: { type: String },
-  // location: {
-  //   address: { type: String },
-  //   lat: { type: Number, required: true },
-  //   lng: { type: Number, required: true },
-  // },
-
   location: {
     type: {
       type: String,

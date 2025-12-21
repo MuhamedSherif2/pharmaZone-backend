@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-
+import upload from '../middleWars/upload.middleware.js';
 import {
     addMedicine,
     getAllMedicines,
@@ -14,14 +14,14 @@ import {
 import { authenticate, authorize } from "../middleWars/auth.middlewar.js";
 
 // Add new medicine
-router.post("/add",authenticate,authorize('admin'), addMedicine);
+router.post("/add",authenticate,authorize('admin'),upload.single("image"), addMedicine);
 
 // Get all medicines
 // /all?pharmacyId=123
 router.get("/all",authenticate,authorize('pharmacy'), getAllMedicines);
 
 // Update medicine
-router.put("/update/:medicineId",authenticate,authorize('admin'), updateMedicine);
+router.put("/update/:medicineId",authenticate,authorize('admin'),upload.single("image"), updateMedicine);
 
 // Find nearest pharmacy that has a specific medicine
 router.post("/nearest/:medicineId", findNearestPharmacyWithMedicine);
