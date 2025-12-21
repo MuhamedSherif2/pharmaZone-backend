@@ -47,3 +47,29 @@ export const updatePassword = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users, exclude password
+    const users = await User.find({}, "-password");
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No users found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      results: users.length,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
